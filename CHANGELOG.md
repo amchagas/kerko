@@ -53,6 +53,8 @@ Other changes:
 
 Backwards incompatible changes:
 
+* The `zotero.Items.__init__` now requires most arguments to be specified by
+  keyword.
 * The default list for the `KERKO_RESULTS_FIELDS` setting now includes the
   `'url'` field. If you have overridden that setting in your application and
   `KERKO_RESULTS_URL_LINKS` is enabled, you'll probably have to add `'url'` too.

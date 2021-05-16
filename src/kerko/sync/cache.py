@@ -6,7 +6,7 @@ import whoosh
 from flask import current_app
 from whoosh.fields import ID, NUMERIC, STORED, Schema
 
-from ..storage import open_index
+from ..storage import open_index, get_storage_dir, load_object, save_object
 from ..tags import TagGate
 from . import zotero
 
@@ -37,28 +37,24 @@ def get_cache_schema():
 def sync_cache():
     """Build a cache of items retrieved from Zotero."""
     current_app.logger.info("Starting cache sync...")
+    count = 0
     composer = current_app.config['KERKO_COMPOSER']
     zotero_credentials = zotero.init_zotero()
-    library_context = zotero.request_library_context(zotero_credentials)
-    index = open_index('cache', schema=get_cache_schema, auto_create=True, write=True)
-    count = 0
-    since = 0  # FIXME: Read 'since' value from last sync.
-    version = zotero.last_modified_version(zotero_credentials)  # FIXME: Save version after sync.
+    library_context = zotero.request_library_context(zotero_credentials)  # FIXME: Load pickle, sync collections incrementally
+    try:
+        since = load_object('cache', 'version')
+    except IOError:
+        since = 0
+    version = zotero.last_modified_version(zotero_credentials)
 
+    index = open_index('cache', schema=get_cache_schema, auto_create=True, write=True)
     writer = index.writer(limitmb=256)
     try:
         writer.mergetype = whoosh.writing.CLEAR
-        allowed_item_types = [
-            t for t in library_context.item_types.keys()
-            if t not in ['note', 'attachment']
-        ]
         formats = get_formats()
         gate = TagGate(composer.default_item_include_re, composer.default_item_exclude_re)
-        for item in zotero.Items(
-            zotero_credentials, since, allowed_item_types,
-            list(formats) + ['data']
-        ):
-            # FIXME: If list of fulltext items not known yet and current_app.config['KERKO_FULLTEXT_SEARCH'], retrieve it
+        for item in zotero.Items(zotero_credentials, since=since, formats=list(formats) + ['data']):
+            # FIXME: If list of fulltext items not known yet and current_app.config['KERKO_FULLTEXT_SEARCH'] is true, retrieve it
             count += 1
             if gate.check(item.get('data', {})):
                 document = {
@@ -69,25 +65,28 @@ def sync_cache():
                     'data': json.dumps(item.get('data', {}))
                 }
                 for format_ in formats:
-                    document[format_] = item.get(format_, '')
+                    if format_ in item:
+                        document[format_] = item[format_]
                 # FIXME: if we have a list of fulltext items, check if item key is in it, if so retrieve its the fulltext and add it to document
                 writer.update_document(**document)
-                current_app.logger.debug(f"Item {count} updated ({item.get('key')}, version {item.get('version')})")
+                current_app.logger.debug(
+                    f"Item {count} updated ({item.get('key')}, version {item.get('version')})"
+                )
             else:
-                current_app.logger.debug(f"Item {count} excluded ({item.get('key')})")  # FIXME: in the context of incremental sync, should delete from index if it exists. But newly included items won't be added if they are older than `since`. Need a clean+sync if inclusion rules change.
-
-        # FIXME: Retrieve notes and attachments with zotero.Items, including
-        # standalone notes. But nah, it should not be through a separate
-        # request!! Otherwise the version might be different! Should avoid
-        # excluding types from `allowed_item_types`, but process the items
-        # differently when they are of type 'note' or 'attachment, which won't
-        # have the format fields.
+                current_app.logger.debug(f"Item {count} excluded ({item.get('key')})")  # FIXME: should not only exclude updated items, but also the unchanged ones that might already be in the cache. But newly included items won't be added if they are older than `since`. Need a clean+sync if inclusion rules change.
+        if since > 0:
+            for deleted in zotero.load_deleted_items(zotero_credentials, since):
+                count += 1
+                writer.delete_by_term('key', deleted)
+                current_app.logger.debug(f"Item {count} removed ({deleted})")
     except Exception as e:  # pylint: disable=broad-except
         writer.cancel()
         current_app.logger.exception(e)
         current_app.logger.error('An exception occurred. Could not finish updating the cache.')
     else:
         writer.commit()
+        save_object('cache', 'version', version)
+        save_object('cache', 'library_context', library_context)
         current_app.logger.info(
             f"Cache sync successful, now at version {version} ({count} item(s) processed)."
         )

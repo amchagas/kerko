@@ -138,6 +138,13 @@ def load_item_type_creator_types(zotero_credentials, item_type):
 
 
 @retry_zotero
+def load_deleted_items(zotero_credentials, since):
+    deleted = zotero_credentials.deleted(since=since).get('items', [])
+    trashed = [trashed['key'] for trashed in Items(zotero_credentials, since=since, trash=True)]
+    return deleted + trashed
+
+
+@retry_zotero
 def retrieve_file(zotero_credentials, item_id):
     """Retrieve the file from the given item."""
     return zotero_credentials.file(item_id)
@@ -269,13 +276,14 @@ class Items:
     list of the child items (also dicts as returned by Zotero).
     """
 
-    def __init__(self, zotero_credentials, since=0, item_types=None, formats=None):
+    def __init__(self, zotero_credentials, *, since=0, item_types=None, formats=None, trash=False):
         """
         Construct the iterable.
 
         :param zotero.Zotero zotero_credentials: The Zotero instance.
 
-        :param int since: Retrieve only items modified after this library version.
+        :param int since: Retrieve only items modified after this library
+            version.
 
         :param Iterable item_types: Iterable of desired Zotero item types. If
             None, all items will be retrieved.
@@ -283,11 +291,21 @@ class Items:
         :param Iterable formats: Iterable of format values for the Zotero read.
             Defaults to `['data']`. See available formats on
             https://www.zotero.org/support/dev/web_api/v3/basics#parameters_for_format_json.
+
+        :param bool Trash: If `False`, all library items except those in the
+            trash are returned. If `True`, only items from the trash are
+            returned.
         """
         self.zotero_credentials = zotero_credentials
         self.since = since
         self.item_type_filter = ' || '.join(item_types) if item_types else None
         self.include = ','.join(formats or ['data'])
+        if trash:
+            self.method = 'trash'
+            self.method_info = 'trashed'
+        else:
+            self.method = 'items'
+            self.method_info = 'updated'
         self.start = current_app.config['KERKO_ZOTERO_START']
         self.zotero_batch = []
         self.iterator = iter(self.zotero_batch)
@@ -309,19 +327,21 @@ class Items:
     def _next_batch(self):
         limit = current_app.config['KERKO_ZOTERO_BATCH_SIZE']
         current_app.logger.info(
-            f"Requesting up to {limit} items since version {self.since}, "
+            f"Requesting up to {limit} {self.method_info} items since version {self.since}, "
             f"starting at position {self.start}..."
         )
-        self.zotero_batch = self.zotero_credentials.items(
-            since=self.since,
-            start=self.start,
-            limit=limit,
-            sort='dateModified',
-            direction='asc',
-            include=self.include,
-            style=current_app.config['KERKO_CSL_STYLE'],
-            itemType=self.item_type_filter
-        )
+        params = {
+            'since': self.since,
+            'start': self.start,
+            'limit': limit,
+            'sort': 'dateModified',
+            'direction': 'asc',
+            'include': self.include,
+            'style': current_app.config['KERKO_CSL_STYLE'],
+        }
+        if self.item_type_filter:
+            params['itemType'] = self.item_type_filter
+        self.zotero_batch = getattr(self.zotero_credentials, self.method)(**params)
         if not self.zotero_batch:
             raise StopIteration  # Empty batch, nothing more to iterate on.
         self.iterator = iter(self.zotero_batch)
@@ -332,7 +352,7 @@ class Items:
         return zotero_item
 
 
-class ChildItems:  # pylint: disable=too-many-instance-attributes
+class ChildItems:  # pylint: disable=too-many-instance-attributes  # FIXME: Remove!!
     """
     Iterable over Zotero child items.
 

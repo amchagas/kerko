@@ -1,4 +1,5 @@
 import pathlib
+import pickle
 import shutil
 
 import whoosh
@@ -11,6 +12,16 @@ class SearchIndexError(Exception):
 
 def get_storage_dir(storage):
     return pathlib.Path(current_app.config['KERKO_DATA_DIR']) / storage
+
+
+def load_object(storage, key):
+    with open(get_storage_dir(storage) / f'{key}.pickle', 'rb') as f:
+        return pickle.load(f)
+
+
+def save_object(storage, key, obj):
+    with open(get_storage_dir(storage) / f'{key}.pickle', 'wb') as f:
+        pickle.dump(obj, f)
 
 
 def open_index(index_name, *, write=False, schema=None, auto_create=False):
