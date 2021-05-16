@@ -8,7 +8,7 @@ from whoosh.query import And, Every, Not, Or, Term
 from whoosh.sorting import Count, Facets, FieldFacet
 
 from .criteria import Criteria
-from .index import open_index
+from .storage import open_index
 
 
 def get_search_return_fields(page_len, exclude=None):
@@ -251,7 +251,7 @@ def build_relations(item, return_fields=None, sort=None):
     """
     Prepare the relational fields of the item for a given relation.
     """
-    with open_index().searcher() as searcher:
+    with open_index('index').searcher() as searcher:
         composer = current_app.config['KERKO_COMPOSER']
         if sort in composer.sorts:
             search_args = build_sort_args(composer.sorts[sort])
@@ -321,7 +321,7 @@ def run_query(criteria, return_fields=None, query_facets=True):
     page_count = 0
     last_sync = None
 
-    index = open_index()
+    index = open_index('index')
     last_sync = index.last_modified()
 
     with index.searcher() as searcher:
@@ -363,7 +363,7 @@ def run_query(criteria, return_fields=None, query_facets=True):
 
 def run_query_unique(field_name, value, return_fields=None):
     """Perform a search query for a single item using an unique key."""
-    with open_index().searcher() as searcher:
+    with open_index('index').searcher() as searcher:
         q = QueryParser(
             field_name,
             schema=current_app.config['KERKO_COMPOSER'].schema,
@@ -391,7 +391,7 @@ def run_query_unique_with_fallback(field_names, value, return_fields=None):
 
 def run_query_all(return_fields=None):
     """Perform a search query to return all items (without faceting)."""
-    with open_index().searcher() as searcher:
+    with open_index('index').searcher() as searcher:
         results = searcher.search(Every(), limit=None)
         if results:
             for hit in results:
@@ -407,4 +407,4 @@ def check_fields(fields):
 
     :return list: List of fields missing from the schema, if any.
     """
-    return [name for name in fields if name not in open_index().schema.names()]
+    return [name for name in fields if name not in open_index('index').schema.names()]

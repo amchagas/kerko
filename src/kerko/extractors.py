@@ -33,23 +33,6 @@ class ItemContext:
         self.data = item.get('data', {})  # For convenient access.
 
 
-class LibraryContext:
-    """Contains data related to a Zotero library."""
-
-    def __init__(
-            self, library_id, library_type, *, collections, item_types, item_fields, creator_types
-    ):
-        self.library_id = library_id
-        self.library_type = library_type
-        self.collections = collections
-        self.item_types = item_types
-        self.item_fields = item_fields
-        self.creator_types = creator_types
-
-    def get_creator_types(self, item_data):
-        return self.creator_types.get(item_data.get('itemType', ''), [])
-
-
 def _parse_zotero_date(text):
     """Parse a fuzzy date into a (year, month, day) tuple of numerical values."""
     year = month = day = 0

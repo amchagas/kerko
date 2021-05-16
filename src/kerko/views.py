@@ -9,18 +9,17 @@ from flask import (abort, current_app, flash, make_response, redirect,
 from flask_babel import get_locale, gettext, ngettext
 
 from . import babel_domain, blueprint
-from .attachments import get_attachments_dir
 from .breadbox import build_breadbox
 from .criteria import Criteria
 from .exceptions import except_abort
 from .forms import SearchForm
-from .index import SearchIndexError
 from .pager import build_pager, get_page_numbers
 from .pager import get_sections as get_pager_sections
 from .query import (build_creators_display, build_item_facet_results,
                     build_relations, get_search_return_fields, run_query,
                     run_query_unique_with_fallback)
 from .sorter import build_sorter
+from .storage import SearchIndexError, get_storage_dir
 
 if sys.version_info < (3, 7):
     # Workaround for 'TypeError: cannot deepcopy this pattern object' when
@@ -217,7 +216,7 @@ def item_attachment_download(item_id, attachment_id, attachment_filename=None):
         return redirect(url_for('.item_view', item_id=item['id']), 301)
     attachment = matching_attachments[0]
 
-    filepath = get_attachments_dir() / attachment_id
+    filepath = get_storage_dir('attachments') / attachment_id
     if not filepath.exists():
         return abort(404)
 
@@ -230,7 +229,7 @@ def item_attachment_download(item_id, attachment_id, attachment_filename=None):
         ), 301)
 
     return send_from_directory(
-        get_attachments_dir(),
+        get_storage_dir('attachments'),
         attachment_id,
         mimetype=attachment['mimetype'],
     )

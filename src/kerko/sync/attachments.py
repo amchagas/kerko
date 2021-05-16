@@ -1,14 +1,12 @@
+"""Synchronize file attachments from the Zotero library."""
+
 import hashlib
-import pathlib
 
 from flask import current_app
 
+from ..query import check_fields, run_query_all
+from ..storage import get_storage_dir
 from . import zotero
-from .query import check_fields, run_query_all
-
-
-def get_attachments_dir():
-    return pathlib.Path(current_app.config['KERKO_DATA_DIR']) / 'attachments'
 
 
 def md5_checksum(path):
@@ -31,7 +29,7 @@ def sync_attachments():
     it always makes sense to synchronize the search index beforehand.
     """
     current_app.logger.info("Starting attachments sync.")
-    attachments_dir = get_attachments_dir()
+    attachments_dir = get_storage_dir('attachments')
     attachments_dir.mkdir(parents=True, exist_ok=True)
     local_files = {p.name for p in attachments_dir.iterdir()}
 
@@ -94,7 +92,7 @@ def sync_attachments():
 
 
 def delete_attachments():
-    attachments_dir = get_attachments_dir()
+    attachments_dir = get_storage_dir('attachments')
     if attachments_dir.is_dir():
         for filepath in attachments_dir.iterdir():
             filepath.unlink()

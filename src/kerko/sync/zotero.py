@@ -7,6 +7,23 @@ from flask import current_app
 from pyzotero import zotero, zotero_errors
 
 
+class LibraryContext:
+    """Contains data related to a Zotero library."""
+
+    def __init__(
+            self, library_id, library_type, *, collections, item_types, item_fields, creator_types
+    ):
+        self.library_id = library_id
+        self.library_type = library_type
+        self.collections = collections
+        self.item_types = item_types
+        self.item_fields = item_fields
+        self.creator_types = creator_types
+
+    def get_creator_types(self, item_data):
+        return self.creator_types.get(item_data.get('itemType', ''), [])
+
+
 @wrapt.decorator
 def retry_zotero(wrapped, _instance, args, kwargs):
     """
@@ -50,6 +67,32 @@ def init_zotero():
         api_key=current_app.config['KERKO_ZOTERO_API_KEY'],
         locale=current_app.config['KERKO_ZOTERO_LOCALE']
     )
+
+
+def request_library_context(zotero_credentials):
+    item_types = {
+        t['itemType']: t['localized']
+        for t in load_item_types(zotero_credentials)
+    }
+    return LibraryContext(
+        zotero_credentials.library_id,
+        zotero_credentials.library_type.rstrip('s'),  # Remove 's' appended by pyzotero.
+        collections=Collections(zotero_credentials),
+        item_types=item_types,
+        item_fields={
+            t: load_item_type_fields(zotero_credentials, t)
+            for t in item_types.keys()
+        },
+        creator_types={
+            t: load_item_type_creator_types(zotero_credentials, t)
+            for t in item_types.keys()
+        }
+    )
+
+
+@retry_zotero
+def last_modified_version(zotero_credentials):
+    return zotero_credentials.last_modified_version()
 
 
 @retry_zotero
@@ -226,11 +269,13 @@ class Items:
     list of the child items (also dicts as returned by Zotero).
     """
 
-    def __init__(self, zotero_credentials, item_types=None, formats=None):
+    def __init__(self, zotero_credentials, since=0, item_types=None, formats=None):
         """
         Construct the iterable.
 
         :param zotero.Zotero zotero_credentials: The Zotero instance.
+
+        :param int since: Retrieve only items modified after this library version.
 
         :param Iterable item_types: Iterable of desired Zotero item types. If
             None, all items will be retrieved.
@@ -240,6 +285,7 @@ class Items:
             https://www.zotero.org/support/dev/web_api/v3/basics#parameters_for_format_json.
         """
         self.zotero_credentials = zotero_credentials
+        self.since = since
         self.item_type_filter = ' || '.join(item_types) if item_types else None
         self.include = ','.join(formats or ['data'])
         self.start = current_app.config['KERKO_ZOTERO_START']
@@ -263,11 +309,11 @@ class Items:
     def _next_batch(self):
         limit = current_app.config['KERKO_ZOTERO_BATCH_SIZE']
         current_app.logger.info(
-            "Requesting up to {limit} items starting at position {start}...".format(
-                limit=limit, start=self.start
-            )
+            f"Requesting up to {limit} items since version {self.since}, "
+            f"starting at position {self.start}..."
         )
         self.zotero_batch = self.zotero_credentials.items(
+            since=self.since,
             start=self.start,
             limit=limit,
             sort='dateModified',

@@ -6,9 +6,11 @@ import wrapt
 from flask import current_app
 from flask.cli import with_appcontext
 
-from . import zotero
-from .attachments import delete_attachments, sync_attachments
-from .index import delete_index, sync_index
+from .storage import delete_index
+from .sync import zotero
+from .sync.attachments import delete_attachments, sync_attachments
+from .sync.index import sync_index
+from .sync.metadata import sync_metadata
 
 
 @wrapt.decorator
@@ -28,10 +30,11 @@ def cli():
 @with_appcontext
 def index():  # Deprecated after version 0.4.
     """
-    Synchronize the search index and the attachments from the Zotero library.
+    Synchronize the metadata, the search index, and the attachments.
 
     This command is deprecated. Use the 'sync' command.
     """
+    sync_metadata()
     sync_index()
     sync_attachments()
 
@@ -40,16 +43,30 @@ def index():  # Deprecated after version 0.4.
 @click.argument(
     'target',
     default='everything',
-    type=click.Choice(['index', 'attachments', 'everything'], case_sensitive=False),
+    type=click.Choice(['metadata', 'index', 'attachments', 'everything'], case_sensitive=False),
 )
 @with_appcontext
 @execution_time_logger
 def sync(target):
     """
-    Synchronize the search index and/or the attachments from the Zotero library.
+    Synchronize the metadata, the search index and/or the file attachments.
 
     By default, everything is synchronized.
+
+    Synchronizing everything means that a 3-step process gets executed:
+
+    (1) Synchronize the metadata from the Zotero library into a local metadata
+       index.
+    (2) Synchronize the search index from the local metadata index.
+    (3) Synchronize the file attachments known to the local metadata index.
+
+    Usually, all steps must be executed. But under certain circumstances it can
+    be useful to execute a given step individually, e.g., after changing the
+    schema of the search index, one can clean and rebuild it from the local
+    metadata index.
     """
+    if target in ['everything', 'metadata']:
+        sync_metadata()
     if target in ['everything', 'index']:
         sync_index()
     if target in ['everything', 'attachments']:
@@ -60,7 +77,7 @@ def sync(target):
 @click.argument(
     'target',
     default='everything',
-    type=click.Choice(['index', 'attachments', 'everything'], case_sensitive=False),
+    type=click.Choice(['metadata', 'index', 'attachments', 'everything'], case_sensitive=False),
 )
 @with_appcontext
 def clean(target):
@@ -69,8 +86,10 @@ def clean(target):
 
     By default, both are cleaned.
     """
+    if target in ['everything', 'metadata']:
+        delete_index('metadata')
     if target in ['everything', 'index']:
-        delete_index()
+        delete_index('index')
     if target in ['everything', 'attachments']:
         delete_attachments()
 

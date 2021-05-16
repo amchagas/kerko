@@ -1,73 +1,12 @@
-import pathlib
-import shutil
+"""Synchronize the search index from the metadata index."""
 
-from flask import current_app
 import whoosh
+from flask import current_app
 
+from ..extractors import ItemContext
+from ..storage import open_index
+from ..tags import TagGate
 from . import zotero
-from .extractors import ItemContext, LibraryContext
-from .tags import TagGate
-
-
-class SearchIndexError(Exception):
-    pass
-
-
-def get_index_dir():
-    return pathlib.Path(current_app.config['KERKO_DATA_DIR']) / 'index'
-
-
-def open_index(auto_create=False, write=False):
-    index_dir = get_index_dir()
-    try:
-        search_index = None
-        if not index_dir.exists() and auto_create and write:
-            index_dir.mkdir(parents=True, exist_ok=True)
-            search_index = whoosh.index.create_in(
-                str(index_dir), current_app.config['KERKO_COMPOSER'].schema
-            )
-        elif index_dir.exists():
-            search_index = whoosh.index.open_dir(str(index_dir), readonly=not write)
-
-        if search_index:
-            if write:  # In write mode, no further checks needed.
-                return search_index
-            if search_index.doc_count() > 0:  # In read mode, we expect some docs to be available.
-                return search_index
-            current_app.logger.error(f"The search index is empty in directory '{index_dir}'.")
-            raise SearchIndexError
-        current_app.logger.error(f"Could not open the search index from directory '{index_dir}'.")
-        raise SearchIndexError
-    except whoosh.index.IndexError as exc:
-        current_app.logger.error(f"Search index error in directory '{index_dir}': '{exc}'.")
-        raise SearchIndexError from exc
-
-
-def delete_index():
-    index_dir = get_index_dir()
-    if index_dir.is_dir():
-        shutil.rmtree(index_dir)
-
-
-def request_library_context(zotero_credentials):
-    item_types = {
-        t['itemType']: t['localized']
-        for t in zotero.load_item_types(zotero_credentials)
-    }
-    return LibraryContext(
-        zotero_credentials.library_id,
-        zotero_credentials.library_type.rstrip('s'),  # Remove 's' appended by pyzotero.
-        collections=zotero.Collections(zotero_credentials),
-        item_types=item_types,
-        item_fields={
-            t: zotero.load_item_type_fields(zotero_credentials, t)
-            for t in item_types.keys()
-        },
-        creator_types={
-            t: zotero.load_item_type_creator_types(zotero_credentials, t)
-            for t in item_types.keys()
-        }
-    )
 
 
 def sync_index():
@@ -75,8 +14,10 @@ def sync_index():
     current_app.logger.info("Starting index sync.")
     composer = current_app.config['KERKO_COMPOSER']
     zotero_credentials = zotero.init_zotero()
-    library_context = request_library_context(zotero_credentials)
-    index = open_index(auto_create=True, write=True)
+    library_context = zotero.request_library_context(zotero_credentials)
+    index = open_index(
+        'index', schema=current_app.config['KERKO_COMPOSER'].schema, auto_create=True, write=True
+    )
     count = 0
 
     def get_children(item):
@@ -105,7 +46,7 @@ def sync_index():
             for spec in list(composer.fields.values()) + list(composer.facets.values())
         }
         gate = TagGate(composer.default_item_include_re, composer.default_item_exclude_re)
-        for item in zotero.Items(zotero_credentials, allowed_item_types, list(formats)):
+        for item in zotero.Items(zotero_credentials, 0, allowed_item_types, list(formats)):
             count += 1
             if gate.check(item.get('data', {})):
                 item_context = ItemContext(item, get_children(item))
