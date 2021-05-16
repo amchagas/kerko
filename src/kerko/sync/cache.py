@@ -1,4 +1,4 @@
-"""Synchronize the metadata index from the Zotero library."""
+"""Synchronize the Zotero library into a local cache."""
 
 import json
 
@@ -20,7 +20,7 @@ def get_formats():
     }
 
 
-def get_metadata_schema():
+def get_cache_schema():
     schema = Schema(
         key=ID(unique=True, stored=True),
         version=NUMERIC(stored=True),
@@ -34,13 +34,13 @@ def get_metadata_schema():
     return schema
 
 
-def sync_metadata():
-    """Build the metadata index from items retrieved from Zotero."""
-    current_app.logger.info("Starting metadata sync.")
+def sync_cache():
+    """Build a cache of items retrieved from Zotero."""
+    current_app.logger.info("Starting cache sync...")
     composer = current_app.config['KERKO_COMPOSER']
     zotero_credentials = zotero.init_zotero()
     library_context = zotero.request_library_context(zotero_credentials)
-    index = open_index('metadata', schema=get_metadata_schema, auto_create=True, write=True)
+    index = open_index('cache', schema=get_cache_schema, auto_create=True, write=True)
     count = 0
     since = 0  # FIXME: Read 'since' value from last sync.
     version = zotero.last_modified_version(zotero_credentials)  # FIXME: Save version after sync.
@@ -85,10 +85,10 @@ def sync_metadata():
     except Exception as e:  # pylint: disable=broad-except
         writer.cancel()
         current_app.logger.exception(e)
-        current_app.logger.error('An exception occurred. Could not finish updating the metadata.')
+        current_app.logger.error('An exception occurred. Could not finish updating the cache.')
     else:
         writer.commit()
         current_app.logger.info(
-            f"Metadata sync successful, now at version {version} ({count} item(s) processed)."
+            f"Cache sync successful, now at version {version} ({count} item(s) processed)."
         )
     return count

@@ -1,4 +1,4 @@
-"""Synchronize the search index from the metadata index."""
+"""Update the search index from the local cache."""
 
 import whoosh
 from flask import current_app
@@ -11,7 +11,7 @@ from . import zotero
 
 def sync_index():
     """Build the search index from items retrieved from Zotero."""
-    current_app.logger.info("Starting index sync.")
+    current_app.logger.info("Starting index sync...")
     composer = current_app.config['KERKO_COMPOSER']
     zotero_credentials = zotero.init_zotero()
     library_context = zotero.request_library_context(zotero_credentials)
@@ -92,6 +92,6 @@ def update_document(document):
 
     :param document: A dict whose fields match the schema.
     """
-    index = open_index(write=True)
+    index = open_index('index', write=True)
     with index.writer(limitmb=256) as writer:
         update_document_with_writer(writer, document)

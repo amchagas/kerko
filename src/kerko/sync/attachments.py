@@ -1,4 +1,4 @@
-"""Synchronize file attachments from the Zotero library."""
+"""Download from Zotero the file attachments referenced by the cache."""
 
 import hashlib
 
@@ -28,7 +28,7 @@ def sync_attachments():
     Files are requested based on item data available in the search index. Thus,
     it always makes sense to synchronize the search index beforehand.
     """
-    current_app.logger.info("Starting attachments sync.")
+    current_app.logger.info("Starting attachments sync...")
     attachments_dir = get_storage_dir('attachments')
     attachments_dir.mkdir(parents=True, exist_ok=True)
     local_files = {p.name for p in attachments_dir.iterdir()}
