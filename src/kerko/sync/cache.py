@@ -6,7 +6,7 @@ import whoosh
 from flask import current_app
 from whoosh.fields import ID, NUMERIC, STORED, Schema
 
-from ..storage import open_index, get_storage_dir, load_object, save_object
+from ..storage import load_object, open_index, save_object
 from ..tags import TagGate
 from . import zotero
 
