@@ -27,10 +27,16 @@ class ItemContext:
 
         :param list children: A list of dicts representing the item's children.
         """
-        self.item_key = item.get('key', '')  # For convenient access.
         self.item = item
         self.children = children
-        self.data = item.get('data', {})  # For convenient access.
+
+    @property
+    def key(self):
+        return self.item['key']
+
+    @property
+    def data(self):
+        return self.item['data']
 
 
 def _parse_zotero_date(text):
@@ -135,7 +141,7 @@ class Extractor(ABC):
 
     def warning(self, message, item_context):
         current_app.logger.warning(
-            f"{self.__class__.__name__}: {message} ({item_context.item_key})"
+            f"{self.__class__.__name__}: {message} ({item_context.key})"
         )
 
 

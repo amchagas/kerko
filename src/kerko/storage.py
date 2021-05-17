@@ -14,9 +14,12 @@ def get_storage_dir(storage):
     return pathlib.Path(current_app.config['KERKO_DATA_DIR']) / storage
 
 
-def load_object(storage, key):
-    with open(get_storage_dir(storage) / f'{key}.pickle', 'rb') as f:
-        return pickle.load(f)
+def load_object(storage, key, default=None):
+    try:
+        with open(get_storage_dir(storage) / f'{key}.pickle', 'rb') as f:
+            return pickle.load(f)
+    except IOError:
+        return default
 
 
 def save_object(storage, key, obj):
