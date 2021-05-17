@@ -66,7 +66,7 @@ def sync_cache():
                 f"Item {count} updated ({item.get('key')}, version {item.get('version')})"
             )
         if since > 0:
-            for deleted in zotero.load_deleted_items(zotero_credentials, since):
+            for deleted in zotero.load_deleted_or_trashed_items(zotero_credentials, since):
                 count += 1
                 writer.delete_by_term('key', deleted)
                 current_app.logger.debug(f"Item {count} removed ({deleted})")

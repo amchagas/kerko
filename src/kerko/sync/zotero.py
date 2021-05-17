@@ -138,7 +138,7 @@ def load_item_type_creator_types(zotero_credentials, item_type):
 
 
 @retry_zotero
-def load_deleted_items(zotero_credentials, since):
+def load_deleted_or_trashed_items(zotero_credentials, since):
     deleted = zotero_credentials.deleted(since=since).get('items', [])
     trashed = [trashed['key'] for trashed in Items(zotero_credentials, since=since, trash=True)]
     return deleted + trashed
