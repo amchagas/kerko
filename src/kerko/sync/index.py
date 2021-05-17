@@ -6,7 +6,6 @@ import whoosh
 from flask import current_app
 from whoosh.query import Every, Term
 
-from ..extractors import ItemContext
 from ..storage import load_object, open_index, save_object
 from ..tags import TagGate
 
@@ -51,10 +50,10 @@ def sync_index():
         for item in get_top_level_items():
             count += 1
             if gate.check(item['data']):
-                item_context = ItemContext(item, get_children(item))
+                item['children'] = get_children(item)  # Extend the base Zotero item dict.
                 document = {}
                 for spec in list(composer.fields.values()) + list(composer.facets.values()):
-                    spec.extract_to_document(document, item_context, library_context)
+                    spec.extract_to_document(document, item, library_context)
                 update_document_with_writer(writer, document, count=count)
             else:
                 current_app.logger.debug(f"Item {count} excluded ({item['key']})")

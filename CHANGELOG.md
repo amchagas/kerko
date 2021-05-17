@@ -53,13 +53,15 @@ Other changes:
 
 Backwards incompatible changes:
 
-* The `zotero.Items.__init__` now requires most arguments to be specified by
-  keyword.
 * The default list for the `KERKO_RESULTS_FIELDS` setting now includes the
   `'url'` field. If you have overridden that setting in your application and
   `KERKO_RESULTS_URL_LINKS` is enabled, you'll probably have to add `'url'` too.
 * The structure of the `kerko/_search-result.html.jinja2` template has changed
   somewhat. If you have overridden it, you'll need to review the changes.
+* The `ItemContext` class has been eliminated. The `Extractor.extract()` method
+  now receives an item (of type `dict`) instead of an `ItemContext` object. If
+  you have created custom extractor classes, their `extract()` method will need
+  to be adapted accordingly.
 * The `StoredFileAttachmentsExtractor` class has been renamed to
   `FileAttachmentsExtractor`.
 
