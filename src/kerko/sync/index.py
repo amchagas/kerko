@@ -54,7 +54,10 @@ def sync_index():
                 document = {}
                 for spec in list(composer.fields.values()) + list(composer.facets.values()):
                     spec.extract_to_document(document, item, library_context)
-                update_document_with_writer(writer, document, count=count)
+                writer.update_document(**document)
+                current_app.logger.debug(
+                    f"Item {count} updated ({document.get('id', '')}): {document.get('z_title')}"
+                )
             else:
                 current_app.logger.debug(f"Item {count} excluded ({item['key']})")
     except Exception as e:  # pylint: disable=broad-except
@@ -125,23 +128,3 @@ def sync_index():
 #         writer.commit()
 #         current_app.logger.info(f"Index sync successful ({count} item(s) processed).")
 #     return count
-
-
-def update_document_with_writer(writer, document, count=None):
-    """
-    Update a document in the search index.
-
-    :param writer: The index writer.
-
-    :param document: A dict whose fields match the schema.
-
-    :param count: An optional document count, for logging purposes.
-    """
-    writer.update_document(**document)
-    current_app.logger.debug(
-        'Document {count}updated ({id}): {title}'.format(
-            id=document.get('id', ''),
-            title=document.get('z_title'),
-            count='' if count is None else '{} '.format(count)
-        )
-    )
