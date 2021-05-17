@@ -239,9 +239,7 @@ class ItemFieldsExtractor(Extractor):
             fields = library_context.item_fields[item_type]
             # Retain metadata for fields that are actually present in the item.
             item_fields = [f for f in fields if f.get('field') in item['data']]
-            if item_fields:
-                return item_fields
-            self.warning("Missing item type fields", item)
+            return item_fields
         else:
             self.warning("Missing itemType", item)
         return None
