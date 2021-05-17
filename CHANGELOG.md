@@ -18,10 +18,6 @@ Features:
   full-text indexing, you must make sure that it works in Zotero first; see
   [Zotero's
   documentation](https://www.zotero.org/support/searching#pdf_full-text_indexing).
-  Caution: If you have thousands of attachments, this feature can significantly
-  slow down the process of synchronizing data from zotero.org, due to Kerko
-  performing a large number of Zotero API requests (hopefully we'll fix this in
-  the future).
 * Add new search scopes "Everywhere" (to search both metadata fields and the
   text content of attached documents) and "In documents" (to search the text
   content of attached documents). The scope "In all fields" allows to search all

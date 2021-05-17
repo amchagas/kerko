@@ -118,22 +118,14 @@ def load_item_fields(zotero_credentials):
 @retry_zotero
 def load_item_type_fields(zotero_credentials, item_type):
     """Return all Zotero fields for a given item type."""
-    current_app.logger.info(
-        "Requesting fields for items of type '{item_type}'...".format(
-            item_type=item_type
-        )
-    )
+    current_app.logger.info(f"Requesting fields for items of type '{item_type}'...")
     return zotero_credentials.item_type_fields(item_type)
 
 
 @retry_zotero
 def load_item_type_creator_types(zotero_credentials, item_type):
     """List all Zotero creator types for a given item type."""
-    current_app.logger.info(
-        "Requesting creator types for items of type '{item_type}'...".format(
-            item_type=item_type
-        )
-    )
+    current_app.logger.info(f"Requesting creator types for items of type '{item_type}'...")
     return zotero_credentials.item_creator_types(item_type)
 
 
@@ -142,6 +134,29 @@ def load_deleted_or_trashed_items(zotero_credentials, since):
     deleted = zotero_credentials.deleted(since=since).get('items', [])
     trashed = [trashed['key'] for trashed in Items(zotero_credentials, since=since, trash=True)]
     return deleted + trashed
+
+
+@retry_zotero
+def load_new_fulltext(zotero_credentials, since):
+    current_app.logger.info(f"Requesting new text content since version {since}...")
+    items = zotero_credentials.new_fulltext(since)
+    current_app.logger.info(f"Found {len(items)} item(s) with new text content.")
+    return items
+
+
+@retry_zotero
+def load_item_fulltext(zotero_credentials, item_key):
+    current_app.logger.debug(f"Requesting text content of item {item_key}...")
+    try:
+        response = zotero_credentials.fulltext_item(item_key)
+        if response.get('content') and (
+            response.get('indexedChars', 0) > 0 or response.get('indexedPages', 0) > 0
+        ):
+            return response['content']
+        current_app.logger.info(f"Text content empty for item {item_key}.")
+    except zotero_errors.ResourceNotFound:
+        current_app.logger.info(f"Text content not available for item {item_key}.")
+    return None
 
 
 @retry_zotero

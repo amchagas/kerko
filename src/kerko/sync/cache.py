@@ -2,7 +2,6 @@
 
 import json
 
-import whoosh
 from flask import current_app
 from whoosh.fields import ID, NUMERIC, STORED, Schema
 
@@ -38,17 +37,21 @@ def sync_cache():
     current_app.logger.info("Starting cache sync...")
     count = 0
     zotero_credentials = zotero.init_zotero()
-    library_context = zotero.request_library_context(zotero_credentials)  # FIXME: Load pickle & sync collections incrementally
+    library_context = zotero.request_library_context(zotero_credentials)  # TODO: Load pickle & sync collections incrementally
     since = load_object('cache', 'version', default=0)
     version = zotero.last_modified_version(zotero_credentials)
 
     index = open_index('cache', schema=get_cache_schema, auto_create=True, write=True)
     writer = index.writer(limitmb=256)
     try:
+        if current_app.config['KERKO_FULLTEXT_SEARCH']:
+            fulltext_items = zotero.load_new_fulltext(zotero_credentials, since)
+        else:
+            fulltext_items = []
         formats = get_formats()
         for item in zotero.Items(zotero_credentials, since=since, formats=list(formats) + ['data']):
-            # FIXME: If list of fulltext items not known yet and current_app.config['KERKO_FULLTEXT_SEARCH'] is true, retrieve it
             count += 1
+
             document = {
                 'key': item.get('key'),
                 'version': item.get('version'),
@@ -59,11 +62,16 @@ def sync_cache():
             for format_ in formats:
                 if format_ in item:
                     document[format_] = item[format_]
-            # FIXME: if we have a list of fulltext items, check if item key is in it, if so retrieve its the fulltext and add it to document
+            if item.get('key') in fulltext_items:
+                fulltext = zotero.load_item_fulltext(zotero_credentials, item.get('key'))
+                if fulltext:
+                    document['fulltext'] = fulltext
+
             writer.update_document(**document)
             current_app.logger.debug(
                 f"Item {count} updated ({item.get('key')}, version {item.get('version')})"
             )
+
         if since > 0:
             for deleted in zotero.load_deleted_or_trashed_items(zotero_credentials, since):
                 count += 1

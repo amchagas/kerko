@@ -340,10 +340,7 @@ override their default value:
 * `KERKO_FULLTEXT_SEARCH`: Allow full-text search of PDF attachments. Defaults
   to `True`. To get consistent results, see [Ensuring full-text indexing of your
   attachments in
-  Zotero](#ensuring-full-text-indexing-of-your-attachments-in-zotero). Caution:
-  If you have thousands of attachments, this feature can significantly slow down
-  the process of synchronizing data from zotero.org, due to Kerko performing a
-  large number of Zotero API requests (hopefully we'll fix this in the future).
+  Zotero](#ensuring-full-text-indexing-of-your-attachments-in-zotero).
 * `KERKO_PAGE_LEN`: The number of search results per page. Defaults to `20`.
 * `KERKO_PAGER_LINKS`: Number of pages to show in the pager (not counting the
   current page). Defaults to `4`.
