@@ -45,7 +45,6 @@ def sync_cache():
     index = open_index('cache', schema=get_cache_schema, auto_create=True, write=True)
     writer = index.writer(limitmb=256)
     try:
-        writer.mergetype = whoosh.writing.CLEAR
         formats = get_formats()
         for item in zotero.Items(zotero_credentials, since=since, formats=list(formats) + ['data']):
             # FIXME: If list of fulltext items not known yet and current_app.config['KERKO_FULLTEXT_SEARCH'] is true, retrieve it
