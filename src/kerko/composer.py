@@ -4,7 +4,7 @@ import whoosh
 from flask_babel import lazy_gettext as _
 from whoosh.analysis import CharsetFilter, LowercaseFilter, StemFilter
 from whoosh.analysis.tokenizers import RegexTokenizer
-from whoosh.fields import BOOLEAN, ID, NUMERIC, STORED, TEXT, Schema, columns
+from whoosh.fields import BOOLEAN, ID, NUMERIC, STORED, TEXT, Schema
 from whoosh.query import Prefix, Term
 from whoosh.support.charset import accent_map
 from whoosh.util.text import rcompile
@@ -1739,7 +1739,7 @@ class Composer:
 
         These rely on `FieldSpec` instances, which must have been added beforehand.
         """
-        pass
+        # No badges by default.
 
     def add_scope(self, scope):
         self.scopes[scope.key] = scope
