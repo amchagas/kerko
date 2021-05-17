@@ -4,7 +4,7 @@ import whoosh
 from flask_babel import lazy_gettext as _
 from whoosh.analysis import CharsetFilter, LowercaseFilter, StemFilter
 from whoosh.analysis.tokenizers import RegexTokenizer
-from whoosh.fields import BOOLEAN, COLUMN, ID, NUMERIC, STORED, TEXT, Schema, columns
+from whoosh.fields import BOOLEAN, ID, NUMERIC, STORED, TEXT, Schema, columns
 from whoosh.query import Prefix, Term
 from whoosh.support.charset import accent_map
 from whoosh.util.text import rcompile
