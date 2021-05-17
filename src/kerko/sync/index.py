@@ -15,7 +15,7 @@ def sync_index():
 
     current_app.logger.info("Starting index sync...")
     composer = current_app.config['KERKO_COMPOSER']
-    library_context = load_object('cache', 'library_context')
+    library_context = load_object('cache', 'library')
     cache = open_index('cache')
     cache_version = load_object('cache', 'version', default=0)
 

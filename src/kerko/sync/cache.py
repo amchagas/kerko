@@ -76,7 +76,7 @@ def sync_cache():
     else:
         writer.commit()
         save_object('cache', 'version', version)
-        save_object('cache', 'library_context', library_context)
+        save_object('cache', 'library', library_context)
         current_app.logger.info(
             f"Cache sync successful, now at version {version} ({count} item(s) processed)."
         )
