@@ -26,7 +26,7 @@ def sync_index():
         current_app.logger.warning("The index is already up-to-date with the cache, nothing to do.")
         return 0
 
-    def get_items(parent_key):
+    def yield_items(parent_key):
         with cache.searcher() as searcher:
             results = searcher.search(Every(), filter=Term('parent_item', parent_key), limit=None)
             if results:
@@ -35,11 +35,11 @@ def sync_index():
                     item['data'] = json.loads(item['data'])
                     yield item
 
-    def get_top_level_items():
-        return get_items('')
+    def yield_top_level_items():
+        return yield_items('')
 
-    def get_children(parent):
-        return get_items(parent['key'])
+    def yield_children(parent):
+        return yield_items(parent['key'])
 
     count = 0
     index = open_index('index', schema=composer.schema, auto_create=True, write=True)
@@ -47,10 +47,10 @@ def sync_index():
     try:
         writer.mergetype = whoosh.writing.CLEAR
         gate = TagGate(composer.default_item_include_re, composer.default_item_exclude_re)
-        for item in get_top_level_items():
+        for item in yield_top_level_items():
             count += 1
             if gate.check(item['data']):
-                item['children'] = get_children(item)  # Extend the base Zotero item dict.
+                item['children'] = list(yield_children(item))  # Extend the base Zotero item dict.
                 document = {}
                 for spec in list(composer.fields.values()) + list(composer.facets.values()):
                     spec.extract_to_document(document, item, library_context)
