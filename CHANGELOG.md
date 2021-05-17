@@ -59,9 +59,10 @@ Backwards incompatible changes:
 * The structure of the `kerko/_search-result.html.jinja2` template has changed
   somewhat. If you have overridden it, you'll need to review the changes.
 * The `ItemContext` class has been eliminated. The `Extractor.extract()` method
-  now receives an item (of type `dict`) instead of an `ItemContext` object. If
-  you have created custom extractor classes, their `extract()` method will need
-  to be adapted accordingly.
+  now receives an item's dictionary instead of an `ItemContext` object, and if
+  an item has children these are now available directly in the item (with the
+  `children` key). If you have created custom extractor classes, their
+  `extract()` method will need to be adapted accordingly.
 * The `StoredFileAttachmentsExtractor` class has been renamed to
   `FileAttachmentsExtractor`.
 
