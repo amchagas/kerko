@@ -426,6 +426,12 @@ override their default value:
   * `KERKO_ZOTERO_END`: Load items from Zotero until the specified position.
     Defaults to `0` (no limit). Useful only for development/tests.
 
+**Caution:** Many of the configuration variables cause changes to the structure
+of Kerko's cache or search index. Changing those variables may require that you
+rebuild the cache or the search index, and restart the application. See the
+[command line interface](#command-line-interface-cli) for the cleaning and
+synchronization commands.
+
 
 ## Synchronization process
 
