@@ -138,9 +138,9 @@ def load_deleted_or_trashed_items(zotero_credentials, since):
 
 @retry_zotero
 def load_new_fulltext(zotero_credentials, since):
-    current_app.logger.info(f"Requesting new text content since version {since}...")
+    current_app.logger.info(f"Requesting updated text content since version {since}...")
     items = zotero_credentials.new_fulltext(since)
-    current_app.logger.info(f"Found {len(items)} item(s) with new text content.")
+    current_app.logger.info(f"Found {len(items)} item(s) with updated text content.")
     return items
 
 
@@ -316,7 +316,7 @@ class Items:
             self.method_info = 'trashed'
         else:
             self.method = 'items'
-            self.method_info = 'new or updated'
+            self.method_info = 'updated'
         self.start = current_app.config['KERKO_ZOTERO_START']
         self.zotero_batch = []
         self.iterator = iter(self.zotero_batch)
