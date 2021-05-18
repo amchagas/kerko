@@ -325,14 +325,12 @@ class Composer:
                     )
                 )
             )
-        # Label of this item's type.
-        if 'item_type' not in exclude:
+        if 'itemType' not in exclude:
             self.add_field(
                 FieldSpec(
-                    key='item_type',
-                    field_type=TEXT(analyzer=self.text_chain, stored=True),
-                    scopes=['all', 'metadata'],
-                    extractor=extractors.ItemTypeLabelExtractor(),
+                    key='itemType',
+                    field_type=ID,
+                    extractor=extractors.ItemDataExtractor(key='itemType'),
                 )
             )
 
@@ -1222,6 +1220,16 @@ class Composer:
         # Other metadata associated to Zotero items, for keyword search.
         #
 
+        # Item type label.
+        if 'text_item_type' not in exclude:
+            self.add_field(
+                FieldSpec(
+                    key='text_item_type',
+                    field_type=self.text_field_type,
+                    scopes=['all', 'metadata'],
+                    extractor=extractors.ItemTypeLabelExtractor(),
+                )
+            )
         # Creators, exempt from stemming.
         if 'text_creator' not in exclude:
             self.add_field(
