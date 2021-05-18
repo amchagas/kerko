@@ -291,7 +291,7 @@ class Items:
     list of the child items (also dicts as returned by Zotero).
     """
 
-    def __init__(self, zotero_credentials, *, since=0, item_types=None, formats=None, trash=False):
+    def __init__(self, zotero_credentials, *, since=0, formats=None, trash=False):
         """
         Construct the iterable.
 
@@ -299,9 +299,6 @@ class Items:
 
         :param int since: Retrieve only items modified after this library
             version.
-
-        :param Iterable item_types: Iterable of desired Zotero item types. If
-            None, all items will be retrieved.
 
         :param Iterable formats: Iterable of format values for the Zotero read.
             Defaults to `['data']`. See available formats on
@@ -313,14 +310,13 @@ class Items:
         """
         self.zotero_credentials = zotero_credentials
         self.since = since
-        self.item_type_filter = ' || '.join(item_types) if item_types else None
         self.include = ','.join(formats or ['data'])
         if trash:
             self.method = 'trash'
             self.method_info = 'trashed'
         else:
             self.method = 'items'
-            self.method_info = 'updated'
+            self.method_info = 'new or updated'
         self.start = current_app.config['KERKO_ZOTERO_START']
         self.zotero_batch = []
         self.iterator = iter(self.zotero_batch)
@@ -354,8 +350,6 @@ class Items:
             'include': self.include,
             'style': current_app.config['KERKO_CSL_STYLE'],
         }
-        if self.item_type_filter:
-            params['itemType'] = self.item_type_filter
         self.zotero_batch = getattr(self.zotero_credentials, self.method)(**params)
         if not self.zotero_batch:
             raise StopIteration  # Empty batch, nothing more to iterate on.
