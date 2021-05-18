@@ -153,8 +153,8 @@ The following features are implemented in Kerko:
 * Integration: although a [standalone application][KerkoApp] is available, Kerko
   itself is not an application, but it can be integrated into any Flask
   application.
-* Command line interface: Kerko provides commands for synchronizing or cleaning
-  data. These can be invoked through the `flask` command (see [Command line
+* Command line interface: Kerko provides commands for synchronizing or deleting
+  its data. These can be invoked through the `flask` command (see [Command line
   interface](#command-line-interface-cli)).
 
 ## Requirements
