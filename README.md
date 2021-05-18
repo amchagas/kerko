@@ -451,10 +451,10 @@ The second step reads data from the cache to update the search index. If the
 cache has changed since the last update, it performs a full rebuild of the
 search index, otherwise it skips to the next step.
 
-The third and last step reads the list of file attachments from the cache, with
-their MD5 hashes. It compares those with the available local copies and
-downloads new or changed files from Zotero. It also deletes any local files that
-may no longer be used.
+The third and last step reads the list of file attachments from the search
+index, with their MD5 hashes. It compares those with the available local copies
+and downloads new or changed files from Zotero. It also deletes any local files
+that may no longer be used.
 
 Normally, all steps are always executed. But under certain circumstances it can
 be useful to execute a given step individually, e.g., after changing some
