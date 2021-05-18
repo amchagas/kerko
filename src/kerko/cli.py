@@ -52,16 +52,6 @@ def sync(target):
     Synchronize the cache, the search index, or the file attachments.
 
     By default, everything is synchronized.
-
-    Synchronizing everything means that a 3-step process gets executed:
-
-    (1) Synchronize the Zotero library into a local cache.
-    (2) Update the search index from the cache.
-    (3) Download from Zotero the file attachments referenced by the cache.
-
-    Usually, all steps must be executed. But under certain circumstances it can
-    be useful to execute a given step individually, e.g., after changing the
-    schema of the search index, one can clean and rebuild it from the cache.
     """
     if target in ['everything', 'cache']:
         sync_cache()
