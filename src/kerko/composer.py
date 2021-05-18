@@ -1267,7 +1267,7 @@ class Composer:
                     key='text_notes',
                     field_type=self.secondary_text_field_type,
                     scopes=['all', 'metadata'],
-                    extractor=extractors.NotesTextExtractor(
+                    extractor=extractors.ChildNotesTextExtractor(
                         include_re=self.default_child_include_re,
                         exclude_re=self.default_child_exclude_re
                     )
@@ -1279,7 +1279,7 @@ class Composer:
                     key='text_docs',
                     field_type=self.tertiary_text_field_type,
                     scopes=['all', 'fulltext'],
-                    extractor=extractors.AttachmentsFulltextExtractor(
+                    extractor=extractors.ChildAttachmentsFulltextExtractor(
                         mime_types=self.mime_types,
                         include_re=self.default_child_include_re,
                         exclude_re=self.default_child_exclude_re
@@ -1298,7 +1298,7 @@ class Composer:
                 FieldSpec(
                     key='rel_cites',
                     field_type=ID(stored=True),
-                    extractor=extractors.RelationsInNotesExtractor(
+                    extractor=extractors.RelationsInChildNotesExtractor(
                         include_re=r'_cites',
                         exclude_re=''
                     )
@@ -1385,7 +1385,7 @@ class Composer:
                 FieldSpec(
                     key='notes',
                     field_type=STORED,
-                    extractor=extractors.RawNotesExtractor(
+                    extractor=extractors.RawChildNotesExtractor(
                         include_re=self.default_child_include_re,
                         exclude_re=self.default_child_exclude_re
                     )
@@ -1397,7 +1397,7 @@ class Composer:
                 FieldSpec(
                     key='links',
                     field_type=STORED,
-                    extractor=extractors.LinkedURIAttachmentsExtractor(
+                    extractor=extractors.ChildLinkedURIAttachmentsExtractor(
                         include_re=self.default_child_include_re,
                         exclude_re=self.default_child_exclude_re
                     )
@@ -1409,7 +1409,7 @@ class Composer:
                 FieldSpec(
                     key='attachments',
                     field_type=STORED,
-                    extractor=extractors.FileAttachmentsExtractor(
+                    extractor=extractors.ChildFileAttachmentsExtractor(
                         mime_types=self.mime_types,
                         include_re=self.default_child_include_re,
                         exclude_re=self.default_child_exclude_re

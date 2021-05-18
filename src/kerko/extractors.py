@@ -377,13 +377,13 @@ class BaseChildrenExtractor(Extractor):
         return accepted_children or None
 
 
-class BaseAttachmentsExtractor(BaseChildrenExtractor):
+class BaseChildAttachmentsExtractor(BaseChildrenExtractor):
 
     def __init__(self, **kwargs):
         super().__init__(item_type='attachment', **kwargs)
 
 
-class FileAttachmentsExtractor(BaseAttachmentsExtractor):
+class ChildFileAttachmentsExtractor(BaseChildAttachmentsExtractor):
     """
     Extract the metadata of stored copies of files into a list of dicts.
     """
@@ -405,7 +405,7 @@ class FileAttachmentsExtractor(BaseAttachmentsExtractor):
         ] if children else None
 
 
-class LinkedURIAttachmentsExtractor(BaseAttachmentsExtractor):
+class ChildLinkedURIAttachmentsExtractor(BaseChildAttachmentsExtractor):
     """
     Extract attached links to URIs into a list of dicts.
     """
@@ -423,7 +423,7 @@ class LinkedURIAttachmentsExtractor(BaseAttachmentsExtractor):
         return None
 
 
-class AttachmentsFulltextExtractor(BaseAttachmentsExtractor):
+class ChildAttachmentsFulltextExtractor(BaseChildAttachmentsExtractor):
     """Extract the text content of attachments."""
 
     def __init__(self, *, mime_types=None, **kwargs):
@@ -442,13 +442,13 @@ class AttachmentsFulltextExtractor(BaseAttachmentsExtractor):
         return None
 
 
-class BaseNotesExtractor(BaseChildrenExtractor):  # pylint: disable=abstract-method
+class BaseChildNotesExtractor(BaseChildrenExtractor):  # pylint: disable=abstract-method
 
     def __init__(self, **kwargs):
         super().__init__(item_type='note', **kwargs)
 
 
-class NotesTextExtractor(BaseNotesExtractor):
+class ChildNotesTextExtractor(BaseChildNotesExtractor):
     """Extract notes for text search."""
 
     def extract(self, item, library_context, spec):
@@ -463,7 +463,7 @@ class NotesTextExtractor(BaseNotesExtractor):
         return None
 
 
-class RawNotesExtractor(BaseNotesExtractor):
+class RawChildNotesExtractor(BaseChildNotesExtractor):
     """Extract raw notes for storage."""
 
     def extract(self, item, library_context, spec):
@@ -476,7 +476,7 @@ class RawNotesExtractor(BaseNotesExtractor):
         return None
 
 
-class RelationsInNotesExtractor(BaseNotesExtractor):
+class RelationsInChildNotesExtractor(BaseChildNotesExtractor):
     """Extract item references specified in child notes."""
 
     def extract(self, item, library_context, spec):

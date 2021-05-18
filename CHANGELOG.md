@@ -69,8 +69,14 @@ Backwards incompatible changes:
   an item has children these are now available directly in the item (with the
   `children` key). If you have created custom extractor classes, their
   `extract()` method will need to be adapted accordingly.
-* The `StoredFileAttachmentsExtractor` class has been renamed to
-  `FileAttachmentsExtractor`.
+* Some extractor classes have been renamed:
+    * `BaseAttachmentsExtractor` → `BaseChildAttachmentsExtractor`
+    * `BaseNotesExtractor` → `BaseChildNotesExtractor`
+    * `LinkedURIAttachmentsExtractor` → `ChildLinkedURIAttachmentsExtractor`
+    * `NotesTextExtractor` → `ChildNotesTextExtractor`
+    * `RawNotesExtractor` → `RawChildNotesExtractor`
+    * `RelationsInNotesExtractor` → `RelationsInChildNotesExtractor`
+    * `StoredFileAttachmentsExtractor` → `ChildFileAttachmentsExtractor`
 
 ## 0.7.1 (2021-02-04)
 
