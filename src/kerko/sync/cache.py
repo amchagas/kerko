@@ -20,12 +20,15 @@ def get_formats():
 
 def get_cache_schema():
     schema = Schema(
-        key=ID(unique=True, stored=True),
-        version=NUMERIC(stored=True),
-        parentItem=ID(stored=True),
-        itemType=ID(stored=True),
-        data=STORED,
-        fulltext=STORED,
+        key=ID(unique=True, stored=True),  # Copied from Zotero.
+        version=NUMERIC(stored=True),  # Copied from Zotero.
+        parentItem=ID(stored=True),  # Kerko addition.
+        itemType=ID(stored=True),  # Kerko addition.
+        library=STORED,  # Copied from Zotero & JSON-encoded.
+        links=STORED,  # Copied from Zotero & JSON-encoded.
+        meta=STORED,  # Copied from Zotero & JSON-encoded.
+        data=STORED,  # Copied from Zotero & JSON-encoded.
+        fulltext=STORED,  # Kerko addition.
     )
     for format_ in get_formats():
         schema.add(format_, STORED)
@@ -57,7 +60,10 @@ def sync_cache():
                 'version': item.get('version'),
                 'parentItem': item.get('data', {}).get('parentItem', ''),
                 'itemType': item.get('data', {}).get('itemType', ''),
-                'data': json.dumps(item.get('data', {}))
+                'library': json.dumps(item.get('library', {})),
+                'links': json.dumps(item.get('links', {})),
+                'meta': json.dumps(item.get('meta', {})),
+                'data': json.dumps(item.get('data', {})),
             }
             for format_ in formats:
                 if format_ in item:

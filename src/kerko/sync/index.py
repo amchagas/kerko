@@ -32,6 +32,9 @@ def sync_index():
             if results:
                 for hit in results:
                     item = hit.fields()
+                    item['library'] = json.loads(item['library'])
+                    item['links'] = json.loads(item['links'])
+                    item['meta'] = json.loads(item['meta'])
                     item['data'] = json.loads(item['data'])
                     yield item
 
