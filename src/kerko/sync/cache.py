@@ -22,8 +22,8 @@ def get_cache_schema():
     schema = Schema(
         key=ID(unique=True, stored=True),
         version=NUMERIC(stored=True),
-        parent_item=ID(stored=True),
-        item_type=ID(stored=True),
+        parentItem=ID(stored=True),
+        itemType=ID(stored=True),
         data=STORED,
         fulltext=STORED,
     )
@@ -55,8 +55,8 @@ def sync_cache():
             document = {
                 'key': item.get('key'),
                 'version': item.get('version'),
-                'parent_item': item.get('data', {}).get('parentItem', ''),
-                'item_type': item.get('data', {}).get('itemType', ''),
+                'parentItem': item.get('data', {}).get('parentItem', ''),
+                'itemType': item.get('data', {}).get('itemType', ''),
                 'data': json.dumps(item.get('data', {}))
             }
             for format_ in formats:

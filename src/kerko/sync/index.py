@@ -28,7 +28,7 @@ def sync_index():
 
     def yield_items(parent_key):
         with cache.searcher() as searcher:
-            results = searcher.search(Every(), filter=Term('parent_item', parent_key), limit=None)
+            results = searcher.search(Every(), filter=Term('parentItem', parent_key), limit=None)
             if results:
                 for hit in results:
                     item = hit.fields()
