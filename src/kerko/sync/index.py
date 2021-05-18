@@ -68,6 +68,7 @@ def sync_index():
         writer.commit()
         save_object('index', 'version', cache_version)
         current_app.logger.info(
-            f"Index sync successful, now at version {cache_version} ({count} item(s) processed)."
+            f"Index sync successful, now at version {cache_version} "
+            f"({count} top level item(s) processed)."
         )
     return count

@@ -15,8 +15,9 @@ from .exceptions import except_abort
 from .forms import SearchForm
 from .pager import build_pager, get_page_numbers
 from .pager import get_sections as get_pager_sections
-from .query import (build_creators_display, build_item_facet_results,
-                    build_relations, get_search_return_fields, run_query,
+from .query import (DEFAULT_QUERY_TERMS, build_creators_display,
+                    build_item_facet_results, build_relations,
+                    get_search_return_fields, run_query,
                     run_query_unique_with_fallback)
 from .sorter import build_sorter
 from .storage import SearchIndexError, get_storage_dir
@@ -46,7 +47,9 @@ def search():
         return redirect(url, 302)
 
     search_results, facet_results, total_count, page_count, last_sync = run_query(
-        criteria, get_search_return_fields(criteria.page_len)
+        criteria,
+        get_search_return_fields(criteria.page_len),
+        default_terms=DEFAULT_QUERY_TERMS,
     )
 
     if criteria.page_len == 1 and criteria.id and (
@@ -91,7 +94,10 @@ def search():
                 # Run a search query to get the item id corresponding to the page number.
                 page_criteria.page_num = page_num
                 page_search_results, _, _, _, _ = run_query(
-                    page_criteria, return_fields=['id'], query_facets=False
+                    page_criteria,
+                    return_fields=['id'],
+                    query_facets=False,
+                    default_terms=DEFAULT_QUERY_TERMS,
                 )
                 if page_search_results:
                     page_kwargs[page_num] = {'id_': page_search_results[0]['id']}
@@ -103,7 +109,8 @@ def search():
         build_relations(
             search_results[0],
             get_search_return_fields(page_len=None, exclude=['coins']),
-            sort=current_app.config['KERKO_RELATIONS_SORT']
+            sort=current_app.config['KERKO_RELATIONS_SORT'],
+            default_terms=DEFAULT_QUERY_TERMS,
         )
         if context['is_searching']:
             context['search_title'] = gettext('Your search')
@@ -161,7 +168,11 @@ def item_view(item_id):
     if current_app.config['KERKO_USE_TRANSLATIONS']:
         babel_domain.as_default()
 
-    item, fellback = run_query_unique_with_fallback(['id', 'alternateId'], item_id)
+    item, fellback = run_query_unique_with_fallback(
+        ['id', 'alternateId'],
+        item_id,
+        default_terms=DEFAULT_QUERY_TERMS,
+    )
     if not item:
         return abort(404)
     item_url = url_for('.item_view', item_id=item['id'], _external=True)
@@ -173,7 +184,8 @@ def item_view(item_id):
     build_relations(
         item,
         get_search_return_fields(page_len=None, exclude=['coins']),
-        sort=current_app.config['KERKO_RELATIONS_SORT']
+        sort=current_app.config['KERKO_RELATIONS_SORT'],
+        default_terms=DEFAULT_QUERY_TERMS,
     )
     return render_template(
         current_app.config['KERKO_TEMPLATE_ITEM'],
@@ -199,7 +211,11 @@ def item_attachment_download(item_id, attachment_id, attachment_filename=None):
     if current_app.config['KERKO_USE_TRANSLATIONS']:
         babel_domain.as_default()
 
-    item, fellback = run_query_unique_with_fallback(['id', 'alternateId'], item_id)
+    item, fellback = run_query_unique_with_fallback(
+        ['id', 'alternateId'],
+        item_id,
+        default_terms=DEFAULT_QUERY_TERMS,
+    )
     if not item:
         return abort(404)
 
@@ -242,7 +258,11 @@ def item_citation_download(item_id, citation_format_key):
     if current_app.config['KERKO_USE_TRANSLATIONS']:
         babel_domain.as_default()
 
-    item, fellback = run_query_unique_with_fallback(['id', 'alternateId'], item_id)
+    item, fellback = run_query_unique_with_fallback(
+        ['id', 'alternateId'],
+        item_id,
+        default_terms=DEFAULT_QUERY_TERMS,
+    )
     if not item:
         return abort(404)
 
@@ -283,7 +303,7 @@ def search_citation_download(citation_format_key):
     criteria.page_len = None
 
     search_results, _, total_count, _, _ = run_query(  # TODO: Avoid building facet results.
-        criteria, return_fields=[citation_format.field.key]
+        criteria, return_fields=[citation_format.field.key], default_terms=DEFAULT_QUERY_TERMS,
     )
 
     if total_count == 0:

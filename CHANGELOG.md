@@ -38,6 +38,10 @@ Features:
   `KERKO_RESULTS_ABSTRACTS_MAX_LENGTH_LEEWAY`).
 * Allow relations in child notes to be specified as HTML links, i.e., in the
   `href` attribute of `<a>` elements.
+* Standalone notes and attachments, i.e., not attached to an item, are now
+  allowed into the search index. Kerko's default views filter those out, but
+  custom applications could retrieve them if needed. Shortcoming: at the moment,
+  those attachments' files are not downloaded, nor is their full-text requested.
 
 Other changes:
 
