@@ -28,7 +28,7 @@ def sync_attachments():
     Files are requested based on item data available in the search index. Thus,
     it always makes sense to synchronize the search index beforehand.
     """
-    current_app.logger.info("Starting attachments sync...")
+    current_app.logger.info("Starting attachment files sync...")
     attachments_dir = get_storage_dir('attachments')
     attachments_dir.mkdir(parents=True, exist_ok=True)
     local_files = {p.name for p in attachments_dir.iterdir()}
@@ -87,7 +87,7 @@ def sync_attachments():
         current_app.logger.debug(f"Deleting attachment {name}, unused.")
         (attachments_dir / name).unlink()
 
-    current_app.logger.info(f"Attachments sync successful ({count} attachment(s) processed).")
+    current_app.logger.info(f"Attachment files sync successful ({count} file(s) processed).")
     return count
 
 
