@@ -48,6 +48,12 @@ Other changes:
 * On narrow screens, stack search form controls for better usability.
 * Respond with an HTTP 503 (Service Unavailable) when the search index is empty
   or unreadable.
+* Make synchronization from Zotero much more efficient through incremental
+  updates. Instead of performing a full synchronization each time, Kerko now
+  retrieves just the newly added or updated items. This dramatically reduces the
+  number of Zotero API calls (and time) required to update Kerko's search index.
+  Note: **More work is planned** to eliminate some Zotero API calls that Kerko
+  makes early in the synchronization process.
 * Make sorts more efficient by setting the `sortable` Whoosh flag on relevant
   fields.
 

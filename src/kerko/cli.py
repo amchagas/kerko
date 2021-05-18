@@ -49,7 +49,7 @@ def index():  # Deprecated after version 0.4.
 @execution_time_logger
 def sync(target):
     """
-    Synchronize the cache, the search index and/or the file attachments.
+    Synchronize the cache, the search index, or the file attachments.
 
     By default, everything is synchronized.
 
@@ -80,9 +80,9 @@ def sync(target):
 @with_appcontext
 def clean(target):
     """
-    Delete the search index and/or the attachments immediately.
+    Delete the cache, the search index, or the attachments immediately.
 
-    By default, both are cleaned.
+    By default, everything is cleaned.
     """
     if target in ['everything', 'cache']:
         delete_index('cache')
