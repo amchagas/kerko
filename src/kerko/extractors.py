@@ -226,7 +226,7 @@ class ItemTypeLabelExtractor(Extractor):
         item_type = item['data'].get('itemType')
         if item_type and item_type in library_context.item_types:
             return library_context.item_types[item_type]
-        self.warning("Missing itemType", item)
+        self.warning(f"Missing or unknown item type '{item_type}'", item)
         return None
 
 
@@ -241,7 +241,7 @@ class ItemFieldsExtractor(Extractor):
             item_fields = [f for f in fields if f.get('field') in item['data']]
             return item_fields
         else:
-            self.warning("Missing itemType", item)
+            self.warning(f"Missing or unknown item type '{item_type}'", item)
         return None
 
 
@@ -263,9 +263,9 @@ class CreatorTypesExtractor(Extractor):
             if item_creator_types:
                 return item_creator_types
             if item['data'].get('creators', False):
-                self.warning("Missing creator types", item)
+                self.warning(f"Missing creator types for item type '{item_type}'.", item)
         else:
-            self.warning("Missing itemType", item)
+            self.warning(f"Missing or unknown item type '{item_type}'", item)
         return None
 
 
