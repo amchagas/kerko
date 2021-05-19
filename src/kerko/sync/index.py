@@ -6,7 +6,7 @@ import whoosh
 from flask import current_app
 from whoosh.query import Every, Term
 
-from ..storage import load_object, open_index, save_object
+from ..storage import SearchIndexError, load_object, open_index, save_object
 from ..tags import TagGate
 
 
@@ -16,10 +16,14 @@ def sync_index():
     current_app.logger.info("Starting index sync...")
     composer = current_app.config['KERKO_COMPOSER']
     library_context = load_object('cache', 'library')
-    cache = open_index('cache')
-    cache_version = load_object('cache', 'version', default=0)
 
-    if not cache_version:  # FIXME: If cache does not exist, the above open_index('cache') crashes before we get here.
+    try:
+        cache = open_index('cache')
+    except SearchIndexError:
+        return 0
+
+    cache_version = load_object('cache', 'version', default=0)
+    if not cache_version:
         current_app.logger.error("The cache is empty and needs to be synchronized first.")
         return 0
     if load_object('index', 'version', default=0) == cache_version:
