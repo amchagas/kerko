@@ -479,7 +479,7 @@ Some frequently used commands are:
 # List all commands provided by Kerko:
 flask kerko --help
 
-# Clean all of Kerko's data.
+# Delete all of Kerko's data.
 flask kerko clean
 
 # Get help about the clean command:
@@ -491,11 +491,11 @@ flask kerko sync
 # Get help about the sync command:
 flask kerko sync --help
 
-# Clean the cache (the next sync will perform a full update from Zotero, but
+# Delete the cache (the next sync will perform a full update from Zotero, but
 # it will not re-download all file attachments).
 flask kerko clean cache
 
-# Clean just the search index.
+# Delete just the search index.
 flask kerko clean index
 
 # Synchronize just the search index.

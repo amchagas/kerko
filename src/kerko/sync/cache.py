@@ -4,6 +4,7 @@ import json
 
 from flask import current_app
 from whoosh.fields import ID, NUMERIC, STORED, Schema
+from whoosh.qparser import QueryParser
 
 from ..storage import load_object, open_index, save_object
 from . import zotero
@@ -44,13 +45,14 @@ def sync_cache():
     since = load_object('cache', 'version', default=0)
     version = zotero.last_modified_version(zotero_credentials)
 
-    index = open_index('cache', schema=get_cache_schema, auto_create=True, write=True)
-    writer = index.writer(limitmb=256)
+    cache = open_index('cache', schema=get_cache_schema, auto_create=True, write=True)
+    writer = cache.writer(limitmb=256)
     try:
         if current_app.config['KERKO_FULLTEXT_SEARCH']:
             fulltext_items = zotero.load_new_fulltext(zotero_credentials, since)
         else:
-            fulltext_items = []
+            fulltext_items = {}
+
         formats = get_formats()
         for item in zotero.Items(zotero_credentials, since=since, formats=list(formats) + ['data']):
             count += 1
@@ -69,6 +71,7 @@ def sync_cache():
                 if format_ in item:
                     document[format_] = item[format_]
             if item.get('key') in fulltext_items:
+                del fulltext_items[item.get('key')]  # Mark this fulltext as updated.
                 fulltext = zotero.load_item_fulltext(zotero_credentials, item.get('key'))
                 if fulltext:
                     document['fulltext'] = fulltext
@@ -78,6 +81,28 @@ def sync_cache():
                 f"Item {count} updated ({item.get('key')}, version {item.get('version')})"
             )
 
+        # Retrieve the updated fulltext of items that were otherwise unchanged.
+        for item_key in fulltext_items.keys():
+            with cache.searcher() as searcher:
+                results = searcher.search(
+                    QueryParser('key', schema=cache.schema, plugins=[]).parse(item_key),
+                    limit=1
+                )
+                if results:
+                    count += 1
+                    document = results[0].fields()
+                    fulltext = zotero.load_item_fulltext(zotero_credentials, item_key)
+                    if fulltext:
+                        document['fulltext'] = fulltext
+                    elif 'fulltext' in document:
+                        del document['fulltext']
+                    writer.update_document(**document)
+                    current_app.logger.debug(
+                        f"Item {count} text content updated "
+                        f"({item_key}, version {document['version']})"
+                    )
+
+        # Check for items to remove.
         if since > 0:
             for deleted in zotero.load_deleted_or_trashed_items(zotero_credentials, since):
                 count += 1
