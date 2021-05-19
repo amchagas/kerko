@@ -62,6 +62,8 @@ Backwards incompatible changes:
 * The default list for the `KERKO_RESULTS_FIELDS` setting now includes the
   `'url'` field. If you have overridden that setting in your application and
   `KERKO_RESULTS_URL_LINKS` is enabled, you'll probably have to add `'url'` too.
+* The schema field `item_type` has been renamed to `item_type_label`. If you
+  have custom templates, please review any use of `item.item_type`.
 * The structure of the `kerko/_search-result.html.jinja2` template has changed
   somewhat. If you have overridden it, you'll need to review the changes.
 * The `ItemContext` class has been eliminated. The `Extractor.extract()` method
