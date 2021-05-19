@@ -443,24 +443,28 @@ process:
 3. Download the file attachments from Zotero.
 
 The first step performs incremental updates of the local cache. After an initial
-full update, the next synchronization runs will only request the new and updated
-items from Zotero. This greatly reduces the number of Zotero API calls, and thus
-the time required to complete the synchronization process.
+full update, the subsequent synchronization runs will request only new and
+updated items from Zotero. This greatly reduces the number of Zotero API calls,
+and thus the time required to complete the synchronization process.
 
 The second step reads data from the cache to update the search index. If the
-cache has changed since the last update, it performs a full rebuild of the
-search index, otherwise it skips to the next step.
+cache has changed since the last update, it performs a full update of the search
+index, otherwise it skips to the next step. Any changes to the search index are
+"committed" as a whole at the end of this step, thus up to that point any user
+using the application sees the data that was available prior to the
+synchronization run.
 
 The third and last step reads the list of file attachments from the search
 index, with their MD5 hashes. It compares those with the available local copies
-and downloads new or changed files from Zotero. It also deletes any local files
-that may no longer be used.
+of the files, and downloads new or changed files from Zotero. It also deletes
+any local files that may no longer be used.
 
-Normally, all steps are always executed. But under certain circumstances it can
-be useful to execute a given step individually, e.g., after changing some
-configuration setting, one may clean just the search index and rebuild it from
-the cache (see [the command line interface](#command-line-interface-cli) below),
-which will complete much quicker than re-synchronizing everything from Zotero.
+Normally, all synchronization steps are executed. But under certain
+circumstances it can be useful to execute a given step individually. For
+example, after changing some configuration settings, one may clean just the
+search index and rebuild it from the cache (see [the command line
+interface](#command-line-interface-cli) below), which will be much faster than
+re-synchronizing from Zotero.
 
 
 ## Command line interface (CLI)
