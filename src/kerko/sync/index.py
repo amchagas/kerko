@@ -19,11 +19,11 @@ def sync_index():
     cache = open_index('cache')
     cache_version = load_object('cache', 'version', default=0)
 
-    if not cache_version:
+    if not cache_version:  # FIXME: If cache does not exist, the above open_index('cache') crashes before we get here.
         current_app.logger.error("The cache is empty and needs to be synchronized first.")
         return 0
     if load_object('index', 'version', default=0) == cache_version:
-        current_app.logger.warning("The index is already up-to-date with the cache, nothing to do.")
+        current_app.logger.warning(f"The index is already up-to-date with the cache (version {cache_version}), nothing to do.")
         return 0
 
     def yield_items(parent_key):
