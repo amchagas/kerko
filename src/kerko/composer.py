@@ -292,7 +292,7 @@ class Composer:
                 )
             )
         # Alternate IDs to search when the primary ID is not found.
-        if 'alternateId' not in exclude:
+        if 'alternateId' not in exclude:  # TODO: Replace with snake_case, for consistency.
             self.add_field(
                 FieldSpec(
                     key='alternateId',
@@ -326,9 +326,10 @@ class Composer:
                 )
             )
         # Item type key.
+        if 'item_type' not in exclude:
             self.add_field(
                 FieldSpec(
-                    key='itemType',
+                    key='item_type',
                     field_type=ID,
                     extractor=extractors.ItemDataExtractor(key='itemType'),
                 )
@@ -338,7 +339,7 @@ class Composer:
             self.add_field(
                 FieldSpec(
                     key='item_type_label',
-                    field_type=TEXT(analyzer=self.text_chain, field_boost=4.0, stored=True),
+                    field_type=TEXT(analyzer=self.text_chain, field_boost=4.0, stored=True),  # FIXME: Bring this with the other common text field types.
                     scopes=['all', 'metadata'],
                     extractor=extractors.ItemTypeLabelExtractor(),
                 )
@@ -346,9 +347,8 @@ class Composer:
 
         # All Zotero item fields that we want to make available to keyword
         # search are specified below, each with an appropriate analyzer chain.
-        # The full list of item fields can be obtained through the Zotero API.
-        # Keys derive from the corresponding field names in Zotero, but are
-        # prefixed with 'z_' to prevent name clashes with Kerko's own fields.
+        # The same keys as Zotero are used (hence the camelCases), but with
+        # 'z_' prefixes to prevent name clashes with other fields.
 
         #
         # Identifier fields, for keyword search. Highly boosted for matches to

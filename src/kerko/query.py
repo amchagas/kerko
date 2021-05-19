@@ -13,8 +13,8 @@ from .storage import open_index
 
 
 DEFAULT_QUERY_TERMS = [
-    Not(Term('itemType', 'note')),
-    Not(Term('itemType', 'attachment')),
+    Not(Term('item_type', 'note')),
+    Not(Term('item_type', 'attachment')),
 ]
 
 
